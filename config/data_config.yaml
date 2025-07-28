@@ -1,0 +1,75 @@
+# Data Configuration for House Price Prediction
+# Dataset paths, column mappings, and data processing settings
+
+data_paths:
+  # Raw data location
+  raw_data: "../data/raw/df_imputed.csv"
+  
+  # Processed data outputs
+  processed_data: "../data/processed/"
+  sample_data: "../data/sample/"
+  
+  # Model storage
+  trained_models: "../models/trained/"
+  experiment_results: "../models/experiments/"
+
+dataset_info:
+  # Expected dataset characteristics
+  expected_rows: 1048575
+  expected_columns: 11
+  
+  # Column definitions
+  target_column: "price"
+  
+  # Feature categories
+  numerical_features:
+    - "bed"
+    - "bath" 
+    - "acre_lot"
+    - "house_size"
+    - "price"
+  
+  categorical_features:
+    - "city"
+    - "state"
+    - "status"
+  
+  identifier_features:
+    - "brokered_by"
+    - "street"
+    - "zip_code"
+
+data_processing:
+  # Sampling settings for memory efficiency
+  default_sample_size: 100000
+  fast_sample_size: 50000
+  full_sample_size: null  # null means use full dataset
+  
+  # Memory management
+  chunk_size: 50000  # For processing large datasets in chunks
+  
+  # Feature engineering
+  create_log_features: true
+  create_ratio_features: true
+  create_interaction_features: false
+  
+  # Missing value handling
+  fill_strategy:
+    numerical: "median"
+    categorical: "mode"
+    
+  # Data validation
+  min_price: 1000      # Minimum reasonable house price
+  max_price: 50000000  # Maximum reasonable house price
+  min_house_size: 100  # Minimum house size in sq ft
+  max_house_size: 50000 # Maximum house size in sq ft
+
+quality_checks:
+  # Data quality thresholds
+  max_missing_percentage: 10.0  # Maximum % of missing values allowed
+  min_unique_values: 2          # Minimum unique values for categorical features
+  max_cardinality: 10000        # Maximum cardinality for categorical encoding
+  
+  # Outlier detection
+  outlier_detection_methods: ["iqr", "zscore"]
+  zscore_threshold: 3.0
