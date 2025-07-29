@@ -11,7 +11,7 @@ import os
 
 # Import the predictor classes
 import sys
-sys.path.append('../src')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from house_price_predictor import HousePricePredictor
 from enhanced_predictor import EnhancedHousePricePredictor
 

@@ -363,23 +363,35 @@ class HousePricePredictor:
         if self.best_model is None:
             raise ValueError("No model trained. Please train a model first or load a saved model.")
         
-        # Convert to DataFrame if it's a dict
-        if isinstance(house_features, dict):
-            house_features = pd.DataFrame([house_features])
-        
-        # Ensure we have the right features
-        house_features_selected = house_features[self.selected_feature_names]
-        
-        # Scale features
-        house_features_scaled = self.scaler.transform(house_features_selected)
-        
-        # Predict (log scale)
-        log_price_pred = self.best_model.predict(house_features_scaled)
-        
-        # Convert back to price scale
-        price_pred = np.expm1(log_price_pred)
-        
-        return price_pred[0] if len(price_pred) == 1 else price_pred
+        try:
+            # Convert to DataFrame if it's a dict
+            if isinstance(house_features, dict):
+                house_features = pd.DataFrame([house_features])
+            
+            # Check if we have required features
+            missing_features = set(self.selected_feature_names) - set(house_features.columns)
+            if missing_features:
+                raise ValueError(f"Missing required features: {missing_features}")
+            
+            # Ensure we have the right features
+            house_features_selected = house_features[self.selected_feature_names]
+            
+            # Handle missing values
+            house_features_selected = house_features_selected.fillna(0)
+            
+            # Scale features
+            house_features_scaled = self.scaler.transform(house_features_selected)
+            
+            # Predict (log scale)
+            log_price_pred = self.best_model.predict(house_features_scaled)
+            
+            # Convert back to price scale
+            price_pred = np.expm1(log_price_pred)
+            
+            return price_pred[0] if len(price_pred) == 1 else price_pred
+            
+        except Exception as e:
+            raise ValueError(f"Error during prediction: {str(e)}")
 
 def main():
     """Main execution function"""
@@ -414,6 +426,8 @@ def main():
         results = predictor.final_evaluation()
         
         # Save model
+        import os
+        os.makedirs('../models/trained', exist_ok=True)
         predictor.save_model('../models/trained/house_price_model_optimized.pkl')
         
         print("\n=== PIPELINE COMPLETED SUCCESSFULLY ===")
