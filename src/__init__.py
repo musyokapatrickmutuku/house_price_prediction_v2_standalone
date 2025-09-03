@@ -12,7 +12,7 @@ __author__ = "Claude Code Assistant"
 __email__ = "noreply@anthropic.com"
 __description__ = "Lightweight house price prediction ML pipeline"
 
-from .house_price_predictor import HousePricePredictor
-from .enhanced_predictor import EnhancedHousePricePredictor
+from .advanced_predictor import AdvancedHousePricePredictor
+from .prediction_intervals import PredictionIntervalEstimator
 
-__all__ = ["HousePricePredictor", "EnhancedHousePricePredictor"]
+__all__ = ["AdvancedHousePricePredictor", "PredictionIntervalEstimator"]
