@@ -60,11 +60,11 @@ def load_model():
         model_path = 'models/trained/advanced_model.pkl'
         if os.path.exists(model_path):
             model_data = joblib.load(model_path)
-            return model_data, True, None
+            return {"model_data": model_data, "success": True, "error": None}
         else:
-            return None, False, "Model file not found"
+            return {"model_data": None, "success": False, "error": "Model file not found"}
     except Exception as e:
-        return None, False, f"Error loading model: {str(e)}"
+        return {"model_data": None, "success": False, "error": f"Error loading model: {str(e)}"}
 
 def train_model_if_needed():
     """Train model if it doesn't exist - for Streamlit Cloud deployment"""
@@ -234,7 +234,10 @@ def main():
     
     # Load model with improved error handling
     with st.spinner("Loading advanced ML model..."):
-        model_data, model_loaded, error_msg = load_model()
+        result = load_model()
+        model_data = result["model_data"]
+        model_loaded = result["success"]
+        error_msg = result["error"]
     
     if not model_loaded:
         st.error(f"❌ Could not load the trained model: {error_msg}")
@@ -246,7 +249,7 @@ def main():
         if st.button("🚀 Train Model Now", type="primary"):
             if train_model_if_needed():
                 st.success("✅ Model trained! Please refresh the page.")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("❌ Training failed. Please check the logs above.")
         
