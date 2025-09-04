@@ -1,6 +1,8 @@
 __pycache__/
-models/
+models/experiments/
 data/raw/df_imputed.csv
-*.pkl
-*.csv
 notebooks/
+*.csv
+
+# Allow the trained production model
+!models/trained/advanced_model.pkl

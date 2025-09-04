@@ -60,12 +60,52 @@ def load_model():
         model_path = 'models/trained/advanced_model.pkl'
         if os.path.exists(model_path):
             model_data = joblib.load(model_path)
-            return model_data, True
+            return model_data, True, None
         else:
-            return None, False
+            return None, False, "Model file not found"
     except Exception as e:
-        st.error(f"Error loading model: {str(e)}")
-        return None, False
+        return None, False, f"Error loading model: {str(e)}"
+
+def train_model_if_needed():
+    """Train model if it doesn't exist - for Streamlit Cloud deployment"""
+    try:
+        # Import here to avoid import errors if modules not available
+        sys.path.insert(0, 'src')
+        from advanced_predictor import AdvancedHousePricePredictor
+        
+        st.info("🤖 Training advanced model... This may take a few minutes.")
+        
+        # Check if dataset is available
+        dataset_path = 'data/raw/df_imputed.csv'
+        if not os.path.exists(dataset_path):
+            st.error("❌ Dataset not found. Please ensure df_imputed.csv is in data/raw/ directory.")
+            return False
+        
+        with st.spinner("Training in progress... Please wait"):
+            # Initialize predictor
+            predictor = AdvancedHousePricePredictor(dataset_path)
+            
+            # Quick training on sample for deployment
+            df_raw = predictor.load_data(sample_size=50000)  # Smaller sample for cloud
+            df_clean = predictor.robust_data_cleaning()
+            predictor.advanced_feature_engineering()
+            predictor.split_data()
+            predictor.feature_selection_and_scaling(k_features=15)  # Fewer features for speed
+            predictor.train_advanced_models()
+            
+            # Save model
+            os.makedirs('models/trained', exist_ok=True)
+            predictor.save_model('models/trained/advanced_model.pkl')
+            
+            st.success("✅ Model trained successfully!")
+            return True
+            
+    except ImportError:
+        st.error("❌ Required modules not found. Please check dependencies.")
+        return False
+    except Exception as e:
+        st.error(f"❌ Training failed: {str(e)}")
+        return False
 
 def create_sample_data(user_inputs):
     """Create a sample dataset for feature engineering"""
@@ -192,14 +232,26 @@ def main():
     
     st.markdown("---")
     
-    # Load model
+    # Load model with improved error handling
     with st.spinner("Loading advanced ML model..."):
-        model_data, model_loaded = load_model()
+        model_data, model_loaded, error_msg = load_model()
     
     if not model_loaded:
-        st.error("❌ Could not load the trained model.")
-        st.info("📝 **To fix this:** Run `python test_advanced_predictor.py` to train the model first.")
-        st.code("python test_advanced_predictor.py", language="bash")
+        st.error(f"❌ Could not load the trained model: {error_msg}")
+        
+        # Offer training option for deployment
+        st.warning("🔧 **Streamlit Cloud Deployment Fix**")
+        st.info("The model file might not be available in the cloud environment. You can train it now:")
+        
+        if st.button("🚀 Train Model Now", type="primary"):
+            if train_model_if_needed():
+                st.success("✅ Model trained! Please refresh the page.")
+                st.experimental_rerun()
+            else:
+                st.error("❌ Training failed. Please check the logs above.")
+        
+        st.markdown("---")
+        st.info("📝 **Alternative:** For local development, run: `python test_advanced_predictor.py`")
         return
     
     st.success("✅ Advanced ML model loaded successfully!")
